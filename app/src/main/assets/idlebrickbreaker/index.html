@@ -1,0 +1,285 @@
+<!--IF YOU ARE READING THIS - YOU ARE THE NICEST IN THE WORLD!-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Idle Brick Breaker by KitBit</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body {
+                font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+                display: flex;
+                align-items: flex-start;
+                justify-content: center;
+                margin: 0;
+                padding: 20px;
+                min-height: 100vh;
+                box-sizing: border-box;
+            }
+            #game-area {
+                background-color: grey;
+                border: solid 1px black;
+                height: 600px;
+                width: 800px;
+                position: relative;
+                overflow: hidden;
+            }
+            .circle {
+                position: absolute;
+                border-radius: 50%;
+            }
+            .brick {
+                position: absolute;
+                transition: transform 0.2s;
+            }
+            .particle {
+                position: absolute;
+                width: 3px;
+                height: 3px;
+                background-color: gold;
+                opacity: 0;
+                animation: explode 1s forwards;
+            }
+            @keyframes explode {
+                0% {
+                    transform: translate(var(--dx), var(--dy));
+                    opacity: 1;
+                }
+                100% {
+                    transform: translate(var(--dx), var(--dy));
+                    opacity: 0;
+                }
+            }
+            #shop {
+                margin-left: 20px;
+            }
+            #cash {
+                position: absolute;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="game-area"></div>
+        <div id="shop">
+            <label>Brick amount: <span id='amountUpgrade'>1</span></label>
+            <button type="button" id="buyAmount">Upgrade (<span id="amountUpgradePrice">2</span>)</button><br>
+            <label>Ball amount: <span id='ballUpgrade'>1</span></label>
+            <button type="button" id="buyBall">Upgrade (<span id="ballUpgradePrice">10</span>)</button><br>
+            <label>Cash per brick: <span id='cashUpgrade'>1</span></label>
+            <button type="button" id="buyCash">Upgrade (<span id="cashUpgradePrice">15</span>)</button>
+        </div>
+        <div id="cash">
+            <label>Cash: <span id="cashLbl">0</span></label>
+        </div>
+
+        <script lang="javascript">
+            const size = 15
+            const color = 'black'
+            const gameArea = document.getElementById('game-area')
+            const maxX = gameArea.clientWidth - size
+            const maxY = gameArea.clientHeight - size
+            const brickSize = 15
+            const brickColor = 'gold'
+            var brickCount = 0
+            var maxBrickCount = 1
+            var bricks = []
+            var cashLbl = document.getElementById('cashLbl')
+            var cash = 0
+            var cashAmount = 1
+            var amountUpgradeLbl = document.getElementById('amountUpgrade')
+            var amountUpgradeBtn = document.getElementById('buyAmount')
+            var amountUpgradePrice = 2
+            var ballUpgradeLbl = document.getElementById('ballUpgrade')
+            var ballUpgradeBtn = document.getElementById('buyBall')
+            var ballUpgradePrice = 10
+            var cashUpgradeLbl = document.getElementById('cashUpgrade')
+            var cashUpgradeBtn = document.getElementById('buyCash')
+            var cashUpgradePrice = 15
+            var maxBallAmount = 1
+            var balls = []
+            var ballIntervals = []
+            var time = 100 
+            var brickSpawnInterval
+
+            function upgradeBall() {
+                if (cash >= ballUpgradePrice && maxBallAmount < 6) {
+                    cash -= ballUpgradePrice
+                    maxBallAmount++
+                    if (maxBallAmount === 5) {
+                        ballUpgradeLbl.textContent = `${maxBallAmount} (MAXED)`
+                        cashLbl.textContent = cash
+                        ballUpgradeBtn.remove()
+                    } else {
+                        ballUpgradeLbl.textContent = maxBallAmount
+                        ballUpgradePrice = Math.round(ballUpgradePrice * 4)
+                        document.getElementById('ballUpgradePrice').textContent = ballUpgradePrice
+                        cashLbl.textContent = cash
+                    }
+                    circleInit()
+                }
+            }
+
+            function upgradeAmount() {
+                if (cash >= amountUpgradePrice) {
+                    cash -= amountUpgradePrice
+                    maxBrickCount++
+                    amountUpgradeLbl.textContent = maxBrickCount
+                    amountUpgradePrice = Math.round(amountUpgradePrice * 1.5)
+                    document.getElementById('amountUpgradePrice').textContent = amountUpgradePrice
+                    cashLbl.textContent = cash
+                    time += 100 
+                    updateBrickSpawnInterval() 
+                }
+            }
+
+            function upgradeCash() {
+                if (cash >= cashUpgradePrice) {
+                    cash -= cashUpgradePrice
+                    cashAmount++
+                    cashUpgradeLbl.textContent = cashAmount
+                    cashUpgradePrice = Math.round(cashUpgradePrice * 1.6)
+                    document.getElementById('cashUpgradePrice').textContent = cashUpgradePrice
+                    cashLbl.textContent = cash
+                }
+            }
+
+            function circleInit() {
+                if (balls.length < maxBallAmount) {
+                    const circle = document.createElement('div')
+                    const x = Math.floor(Math.random() * maxX)
+                    const y = Math.floor(Math.random() * maxY)
+                    const dx = 2
+                    const dy = 2
+
+                    circle.style.width = `${size}px`
+                    circle.style.height = `${size}px`
+                    circle.style.backgroundColor = color
+                    circle.classList.add('circle')
+                    circle.style.left = `${x}px`
+                    circle.style.top = `${y}px`
+                    gameArea.appendChild(circle)
+                    balls.push({element: circle, x, y, dx, dy})
+                    const interval = startFloat(circle, dx, dy)
+                    ballIntervals.push(interval)
+                }
+            }
+
+            function startFloat(circle, dx, dy) {
+                const interval = setInterval(() => {
+                    let ball = balls.find(b => b.element === circle)
+                    if (!ball) {
+                        clearInterval(interval)
+                        return
+                    }
+
+                    ball.x += ball.dx
+                    ball.y += ball.dy
+
+                    if (ball.x <= 0 || ball.x >= maxX) {
+                        ball.dx = -ball.dx
+                    }
+                    if (ball.y <= 0 || ball.y >= maxY) {
+                        ball.dy = -ball.dy
+                    }
+
+                    circle.style.left = `${ball.x}px`
+                    circle.style.top = `${ball.y}px`
+
+                    collisionHandler(circle)
+                }, 8)
+                return interval
+            }
+
+            function init() {
+                for (let i = 0; i < maxBallAmount; i++) {
+                    circleInit()
+                }
+                updateBrickSpawnInterval() 
+            }
+
+            function brickInit(bx, by) {
+                const brick = document.createElement('div')
+                brick.style.width = `${brickSize}px`
+                brick.style.height = `${brickSize}px`
+                brick.style.backgroundColor = brickColor
+                brick.classList.add('brick')
+                brick.style.left = `${bx}px`
+                brick.style.top = `${by}px`
+                gameArea.appendChild(brick)
+                bricks.push(brick)
+            }
+
+            function updateBrickSpawnInterval() {
+                if (brickSpawnInterval) {
+                    clearInterval(brickSpawnInterval)
+                }
+                brickSpawnInterval = setInterval(() => {
+                    if (brickCount < maxBrickCount) {
+                        const bx = Math.floor(Math.random() * maxX)
+                        const by = Math.floor(Math.random() * maxY)
+                        brickInit(bx, by)
+                        brickCount++
+                    }
+                }, time)
+            }
+
+            function collisionHandler(circle) {
+                const circleRect = circle.getBoundingClientRect()
+                const gameAreaRect = gameArea.getBoundingClientRect()
+                bricks.forEach((brick, index) => {
+                    const brickRect = brick.getBoundingClientRect()
+                    if (
+                        circleRect.left < brickRect.right &&
+                        circleRect.right > brickRect.left &&
+                        circleRect.top < brickRect.bottom &&
+                        circleRect.bottom > brickRect.top
+                    ) {
+                        setTimeout(() => {
+                            brick.remove()
+                            bricks.splice(index, 1)
+                        }, 100)
+                        cash += cashAmount
+                        brickCount--
+                        cashLbl.textContent = cash
+                        balls.forEach(ball => {
+                            if (ball.element === circle) {
+                                ball.dx = -ball.dx
+                                ball.dy = -ball.dy
+                            }
+                        })
+                        createParticles(brick, gameAreaRect)
+                    }
+                })
+            }
+
+            function createParticles(brick, gameAreaRect) {
+                const numParticles = 10
+                const brickRect = brick.getBoundingClientRect()
+                const brickX = brickRect.left - gameAreaRect.left
+                const brickY = brickRect.top - gameAreaRect.top
+                for (let i = 0; i < numParticles; i++) {
+                    const particle = document.createElement('div')
+                    particle.classList.add('particle')
+                    particle.style.left = `${brickX + brickSize / 2}px`
+                    particle.style.top = `${brickY + brickSize / 2}px`
+                    const dx = (Math.random() - 0.5) * 100
+                    const dy = (Math.random() - 0.5) * 100
+                    particle.style.setProperty('--dx', `${dx}px`)
+                    particle.style.setProperty('--dy', `${dy}px`)
+                    gameArea.appendChild(particle)
+                    setTimeout(() => {
+                        particle.remove()
+                    }, 1000)
+                }
+            }
+
+            amountUpgradeBtn.onclick = upgradeAmount
+            ballUpgradeBtn.onclick = upgradeBall
+            cashUpgradeBtn.onclick = upgradeCash
+
+            init()
+        </script>
+    </body>
+</html>
