@@ -16,7 +16,16 @@ android {
     }
 
     buildTypes {
-        release { isMinifyEnabled = false }
+        debug {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+        }
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+        }
     }
 
     compileOptions {
@@ -29,6 +38,9 @@ android {
 dependencies {
     implementation(project(":brickbreaker"))
     implementation(project(":flowit"))
+    implementation(project(":anuto"))
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.webkit:webkit:1.10.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.cardview:cardview:1.0.0")
 }

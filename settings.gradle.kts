@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "GamePlayer"
-include(":app", ":brickbreaker", ":flowit")
+include(":app", ":brickbreaker", ":flowit", ":anuto")
