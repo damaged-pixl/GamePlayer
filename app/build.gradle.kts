@@ -19,12 +19,14 @@ android {
         debug {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Personal app sideloaded via adb — sign release with the debug key
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
@@ -32,7 +34,12 @@ android {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
     }
-    kotlinOptions { jvmTarget = "1.8" }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8)
+    }
 }
 
 dependencies {
@@ -43,4 +50,8 @@ dependencies {
     implementation("androidx.webkit:webkit:1.10.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.cardview:cardview:1.0.0")
+    // Arrow Escape (sidhant947/ArrowEscape) as a Flutter AAR,
+    // built from games-src/arrowescape_module via `flutter build aar`.
+    debugImplementation("com.bee.arrowescape:flutter_debug:1")
+    releaseImplementation("com.bee.arrowescape:flutter_release:1")
 }

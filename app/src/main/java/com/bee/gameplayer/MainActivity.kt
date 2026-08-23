@@ -19,13 +19,14 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import io.flutter.embedding.android.FlutterActivity
 
 data class Game(
     val name: String,
     val description: String,
     val emoji: String,
     val color: Int,
-    val launch: (Context) -> Intent,
+    val launch: ((Context) -> Intent)? = null,
 )
 
 class MainActivity : Activity() {
@@ -38,11 +39,14 @@ class MainActivity : Activity() {
             Intent(this, com.bytehamster.flowitgame.Main::class.java)
         },
         Game("Arrow Escape", "Slide every arrow off the board without a crash", "➡️", Color.rgb(155, 89, 182)) {
-            WebGameActivity.intent(this, "Arrow Escape", "arrowescape/index.html")
+            FlutterActivity.createDefaultIntent(this)
         },
-        Game("Idle Brick Breaker", "Balls demolish bricks while you watch and upgrade", "⏳", Color.rgb(230, 126, 34)) {
-            WebGameActivity.intent(this, "Idle Brick Breaker", "idlebrickbreaker/index.html")
-        },
+        Game(
+            "Idle Brick Breaker",
+            "Unavailable — the original TechTreeGames game is closed-source and no faithful open-source clone exists",
+            "🚫",
+            Color.rgb(90, 90, 100),
+        ),
         Game("Anuto TD", "Hand-drawn tower defense with devious waves", "🗼", Color.rgb(39, 174, 96)) {
             Intent(this, ch.logixisland.anuto.view.game.GameActivity::class.java)
         },
@@ -157,7 +161,10 @@ class MainActivity : Activity() {
             holder.iconTile.background = rounded(game.color, dp(14))
             holder.name.text = game.name
             holder.desc.text = game.description
-            holder.card.setOnClickListener { startActivity(game.launch(this@MainActivity)) }
+            holder.card.alpha = if (game.launch == null) 0.5f else 1f
+            holder.card.setOnClickListener {
+                game.launch?.let { startActivity(it(this@MainActivity)) }
+            }
         }
 
         private inner class Holder(
