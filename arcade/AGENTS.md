@@ -1,19 +1,24 @@
 # AGENTS.md — GamePlayer `:arcade` module (Tiny Arcade)
 
-Six tiny games (Snake, 2048, Flappy, Brick Break, Whac-a-mole, Memory) as a
-library module inside GamePlayer. Pure framework Android, `View`/`SurfaceView`
-only — no Compose, no WebView, no fragments, no deps. Package `com.bee.arcade`,
-minSdk 26, compileSdk 36. Merged from the standalone `~/dev/TinyArcade` app on
-2026-09-20 (snapshot: `~/backups/TinyArcade-pre-merge-2026-09-20`).
+Nine tiny games (Snake, 2048, Flappy, Brick Break, Whac-a-mole, Memory, Flood
+Fill, Arrow Slide, Idle Bricks) as a library module inside GamePlayer. Pure
+framework Android, `View`/`SurfaceView` only — no Compose, no WebView, no
+fragments, no deps. Package `com.bee.arcade`, minSdk 26, compileSdk 36. Merged
+from the standalone `~/dev/TinyArcade` app on 2026-09-20 (snapshot:
+`~/backups/TinyArcade-pre-merge-2026-09-20`). The three native minis (Flood
+Fill, Arrow Slide, Idle Bricks) replaced the heavy `:flowit` / `:anuto`
+modules and the Flutter Arrow Escape AAR on 2026-09-20. The minis are
+inspired-by originals, deliberately renamed because they are not the same
+games.
 
 ## How it fits in GamePlayer
 
 - `:arcade` is a **library** — no applicationId, no launcher activity, no
-  picker. The GamePlayer launcher (`:app`) lists the six games as its primary
+  picker. The GamePlayer launcher (`:app`) lists the nine games as its primary
   cards and hosts each one in `TinyGameActivity`.
 - `ArcadeGames.create(id, ctx, goHome)` is the **only public seam** — the game
   classes stay package-private. Game ids 0-5 match the old TinyArcade picker so
-  the `"arcade"` prefs keys keep working.
+  the `"arcade"` prefs keys keep working; ids 6-8 are the native minis.
 - `BaseGameView` is public (the host activity calls `activityPause()` /
   `activityResume()`); `HomeListener` stays package-private — the factory wraps
   a `Runnable`.
@@ -28,7 +33,7 @@ adb install -r app/build/outputs/apk/release/app-release.apk
 ```
 
 - **No test suite** — verify by building and playing on a device/emulator.
-- R8 runs at the app level; the six games are kept via the factory references.
+- R8 runs at the app level; the nine games are kept via the factory references.
 
 ## Architecture (read before editing)
 
@@ -37,7 +42,7 @@ adb install -r app/build/outputs/apk/release/app-release.apk
 | `ArcadeGames.java` | Public factory: `create(int id, Context, Runnable goHome) -> View` |
 | `BaseGameView.java` | Shared `SurfaceView` shell: loop, uniform logical scale, insets, home/pause chrome, pause overlay, vibration, prefs, procedural audio |
 | `Sfx.java` | Shared soft/plucked serialised audio |
-| `SnakeGame.java` / `T2048Game.java` / `FlappyGame.java` / `SinkBreakGame.java` / `WhacGame.java` / `MemoryGame.java` | Games as `BaseGameView` subclasses |
+| `SnakeGame.java` / `T2048Game.java` / `FlappyGame.java` / `SinkBreakGame.java` / `WhacGame.java` / `MemoryGame.java` / `FloodFillGame.java` / `ArrowSlideGame.java` / `IdleBricksGame.java` | Games as `BaseGameView` subclasses |
 
 ### BaseGameView contract (subclasses implement)
 
@@ -49,7 +54,7 @@ adb install -r app/build/outputs/apk/release/app-release.apk
 - `bgColor()`, `buzz()`, `centerText()`, `sfx`, `prefs`, `p`, `frame` available.
 - **Menus use the shared template** `drawMenu(c, title, subtitle, best, accent)`
   (title block at LH*0.28, pulsing TAP TO START at LH*0.88). Call it AFTER
-  drawing the game's demo/field so the text overlays it. All six games use it —
+  drawing the game's demo/field so the text overlays it. All nine games use it —
   keep menu text positions consistent.
 
 ### Invariants (do not break)
@@ -69,7 +74,9 @@ adb install -r app/build/outputs/apk/release/app-release.apk
   volume ≈0.30), serialised on one thread, throttled to ≥24 ms. Don't add raw
   square/saw tones or overlapping tracks.
 - **Score keys** in prefs `"arcade"`: `s_hi`, `t_hi`, `f_hi`, `k_hi`, `w_hi`,
-  `m_hi`. Do not rename — scores from the standalone TinyArcade app carry over.
+  `m_hi` (ids 0-5 — do not rename, scores from the standalone TinyArcade app
+  carry over), plus `ff_hi` (Flood Fill), `as_hi` (Arrow Slide) and the idle
+  keys `ib_gold`, `ib_dmg`, `ib_spd`, `ib_balls`, `ib_click`, `ib_hi`.
 
 ## Games
 
@@ -82,5 +89,19 @@ adb install -r app/build/outputs/apk/release/app-release.apk
   (×5 cap), score popups, splat flash, best persisted (`w_hi`).
 - **Memory** — 4×4 pairs; flip two per turn, mismatch shows for 0.9 s then hides;
   best score is the lowest move count (`m_hi`, 0 = unset → shown as "—").
+- **Flood Fill** — Flowit-style tool puzzle: tap a TOOL cell (flood compass or
+  direction arrow) and it fills EMPTY cells with its colour; if nothing can be
+  filled it clears its colour instead. Win = every cell matches its faint
+  target colour (tool cells skipped). 15 procedural levels, then
+  "ALL LEVELS CLEARED" (`ff_hi` = best level). Levels: one flood tool + one
+  straight-line tool per other colour; lines first, flood last.
+- **Arrow Slide** — slide every arrow off the board: tap an arrow to slide it;
+  clear path to the edge = it escapes, hitting another arrow = crash (both
+  destroyed, −1 life). 3 lives, endless procedural levels (`as_hi` = best level).
+- **Idle Bricks** — bricks with HP, balls auto-bounce and deal damage,
+  tap a brick for click damage, gold per brick. Four upgrades (damage / speed /
+  balls / click) bought from the 2×2 panel at the bottom; gold and upgrades
+  persist (`ib_*`). Endless levels.
 - **Shared `chip()` HUD helper** lives in `BaseGameView` (dark rounded rect,
-  label over bold value) — used by 2048, Whac and Memory; don't re-implement it.
+  label over bold value) — used by 2048, Whac, Memory, Flood Fill, Arrow Slide
+  and Idle Bricks; don't re-implement it.

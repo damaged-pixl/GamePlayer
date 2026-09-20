@@ -44,14 +44,8 @@ kotlin {
 
 dependencies {
     implementation(project(":arcade"))
-    implementation(project(":flowit"))
-    implementation(project(":anuto"))
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.webkit:webkit:1.10.0")
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.cardview:cardview:1.0.0")
-    // Arrow Escape (sidhant947/ArrowEscape) as a Flutter AAR,
-    // built from games-src/arrowescape_module via `flutter build aar`.
-    debugImplementation("com.bee.arrowescape:flutter_debug:1")
-    releaseImplementation("com.bee.arrowescape:flutter_release:1")
 }

@@ -25,19 +25,12 @@
             android:exported="false"
             android:configChanges="orientation|screenSize|keyboardHidden"/>
 
-        <!-- Tiny Arcade games (Snake, 2048, Flappy, Brick Break, Whac-a-mole, Memory) -->
+        <!-- Tiny Arcade games (Snake, 2048, Flappy, Brick Break, Whac-a-mole, Memory,
+             Flood Fill, Arrow Slide, Idle Bricks) -->
         <activity
             android:name=".TinyGameActivity"
             android:exported="false"
             android:screenOrientation="portrait"
             android:configChanges="orientation|screenSize|keyboardHidden"/>
-
-        <!-- Arrow Escape: the real Flutter game (sidhant947/ArrowEscape), bundled as AAR -->
-        <activity
-            android:name="io.flutter.embedding.android.FlutterActivity"
-            android:exported="false"
-            android:hardwareAccelerated="true"
-            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
-            android:windowSoftInputMode="adjustResize"/>
     </application>
 </manifest>

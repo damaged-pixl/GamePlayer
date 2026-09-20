@@ -20,7 +20,6 @@ import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bee.arcade.ArcadeGames
-import io.flutter.embedding.android.FlutterActivity
 
 data class Game(
     val name: String,
@@ -52,20 +51,14 @@ class MainActivity : Activity() {
         Game("Memory", "4×4 pairs, lowest move count wins", "🃏", Color.rgb(156, 107, 255)) {
             TinyGameActivity.intent(this, ArcadeGames.MEMORY)
         },
-        Game("Flowit", "Flow colors across the grid to fill every box", "🌊", Color.rgb(52, 152, 219)) {
-            Intent(this, com.bytehamster.flowitgame.Main::class.java)
+        Game("Flood Fill", "Tap tools to fill empty cells and match the pattern", "🌊", Color.rgb(76, 175, 80)) {
+            TinyGameActivity.intent(this, ArcadeGames.FLOOD_FILL)
         },
-        Game("Arrow Escape", "Slide every arrow off the board without a crash", "➡️", Color.rgb(155, 89, 182)) {
-            FlutterActivity.createDefaultIntent(this)
+        Game("Arrow Slide", "Slide every arrow off the board without a crash", "➡️", Color.rgb(61, 169, 226)) {
+            TinyGameActivity.intent(this, ArcadeGames.ARROW_SLIDE)
         },
-        Game(
-            "Idle Brick Breaker",
-            "Unavailable — the original TechTreeGames game is closed-source and no faithful open-source clone exists",
-            "🚫",
-            Color.rgb(90, 90, 100),
-        ),
-        Game("Anuto TD", "Hand-drawn tower defense with devious waves", "🗼", Color.rgb(39, 174, 96)) {
-            Intent(this, ch.logixisland.anuto.view.game.GameActivity::class.java)
+        Game("Idle Bricks", "Auto-battle bricks, tap for damage, buy upgrades", "🧱", Color.rgb(255, 176, 32)) {
+            TinyGameActivity.intent(this, ArcadeGames.IDLE_BRICKS)
         },
         Game("Minesweeper", "Clear the field, flag the mines. Long-press to flag", "💣", Color.rgb(127, 140, 141)) {
             WebGameActivity.intent(this, "Minesweeper", "minesweeper/index.html")

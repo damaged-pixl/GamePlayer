@@ -1,1 +1,0 @@
-Fill all boxes with the color of their border

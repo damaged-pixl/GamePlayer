@@ -1,3 +1,0 @@
-- 7 new community levels
-- Better support for Android 17
-- You can contribute your own levels by visiting https://flowit.bytehamster.com/
