@@ -19,6 +19,7 @@ import android.widget.TextView
 import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.bee.arcade.ArcadeGames
 import io.flutter.embedding.android.FlutterActivity
 
 data class Game(
@@ -32,8 +33,24 @@ data class Game(
 class MainActivity : Activity() {
 
     private val games = listOf(
-        Game("Brick Breaker", "Smash waves of bricks with a bouncing paddle", "🧱", Color.rgb(231, 76, 60)) {
-            Intent(this, com.bee.brickbreaker.MainActivity::class.java)
+        // Tiny Arcade — the primary set (com.bee.arcade, :arcade module)
+        Game("Snake", "Grid + swipe, wrap edges, glide between ticks", "🐍", Color.rgb(61, 226, 79)) {
+            TinyGameActivity.intent(this, ArcadeGames.SNAKE)
+        },
+        Game("2048", "Swipe and merge tiles all the way to 2048", "🔢", Color.rgb(237, 194, 46)) {
+            TinyGameActivity.intent(this, ArcadeGames.T2048)
+        },
+        Game("Flappy", "One-tap flap, constant pipe speed", "🐤", Color.rgb(255, 225, 90)) {
+            TinyGameActivity.intent(this, ArcadeGames.FLAPPY)
+        },
+        Game("Brick Break", "Classic brick breaker, hand-built levels", "🧱", Color.rgb(79, 195, 247)) {
+            TinyGameActivity.intent(this, ArcadeGames.BRICK)
+        },
+        Game("Whac-a-mole", "30 s arcade timer, combo chains", "🔨", Color.rgb(255, 158, 46)) {
+            TinyGameActivity.intent(this, ArcadeGames.WHAC)
+        },
+        Game("Memory", "4×4 pairs, lowest move count wins", "🃏", Color.rgb(156, 107, 255)) {
+            TinyGameActivity.intent(this, ArcadeGames.MEMORY)
         },
         Game("Flowit", "Flow colors across the grid to fill every box", "🌊", Color.rgb(52, 152, 219)) {
             Intent(this, com.bytehamster.flowitgame.Main::class.java)
@@ -49,9 +66,6 @@ class MainActivity : Activity() {
         ),
         Game("Anuto TD", "Hand-drawn tower defense with devious waves", "🗼", Color.rgb(39, 174, 96)) {
             Intent(this, ch.logixisland.anuto.view.game.GameActivity::class.java)
-        },
-        Game("2048", "Swipe and merge tiles all the way to 2048", "🔢", Color.rgb(243, 156, 18)) {
-            WebGameActivity.intent(this, "2048", "game2048/index.html")
         },
         Game("Minesweeper", "Clear the field, flag the mines. Long-press to flag", "💣", Color.rgb(127, 140, 141)) {
             WebGameActivity.intent(this, "Minesweeper", "minesweeper/index.html")

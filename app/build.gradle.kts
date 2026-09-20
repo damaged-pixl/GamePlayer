@@ -43,7 +43,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(project(":brickbreaker"))
+    implementation(project(":arcade"))
     implementation(project(":flowit"))
     implementation(project(":anuto"))
     implementation("androidx.core:core-ktx:1.13.1")
