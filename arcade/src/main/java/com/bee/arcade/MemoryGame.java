@@ -13,7 +13,7 @@ import android.view.MotionEvent;
 final class MemoryGame extends BaseGameView {
 
     private static final int MENU = 0, PLAY = 1, OVER = 2;
-    private int screen = MENU;
+    private volatile int screen = MENU;
 
     private static final int N = 16, SIDE = 4;
     private static final float W = 84f, H = 104f, GAP = 10f, STEP = W + GAP;
@@ -98,8 +98,9 @@ final class MemoryGame extends BaseGameView {
         int col = (int) ((lx - GX) / STEP);
         int row = (int) ((ly - (topPad() + GY)) / STEP);
         if (col < 0 || col >= SIDE || row < 0 || row >= SIDE) return -1;
-        int i = row * SIDE + col;
-        return i;
+        float inX = lx - GX - col * STEP, inY = ly - (topPad() + GY) - row * STEP;
+        if (inX < 0 || inX > W || inY < 0 || inY > H) return -1;
+        return row * SIDE + col;
     }
 
     @Override
@@ -113,7 +114,7 @@ final class MemoryGame extends BaseGameView {
                     int idx = cardAt(lx, ly);
                     if (idx < 0 || matched[idx]) return true;
                     if (f1 < 0) { f1 = idx; sfx.bounce(); return true; }
-                    if (f2 >= 0) return true;
+                    if (idx == f1 || f2 >= 0) return true;
                     f2 = idx;
                     moves++;
                     if (val[f1] == val[f2]) {
@@ -236,7 +237,7 @@ final class MemoryGame extends BaseGameView {
     private void drawHud(Canvas c) {
         float tp = topPad();
         chip(c, 18, tp + 46, 92, "MOVES", moves);
-        chip(c, LW - 110, tp + 46, 92, "BEST", hi);
+        chip(c, LW - 110, tp + 46, 92, "BEST", hi == 0 ? "—" : String.valueOf(hi));
         if (flipWait <= 0f && f1 >= 0 && f2 < 0) {
             centerText(c, "find its pair", LW / 2, tp + 58, 16, 0x88FFFFFF);
         }

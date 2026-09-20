@@ -41,6 +41,11 @@ class WebGameActivity : Activity() {
         if (webView.canGoBack()) webView.goBack() else super.onBackPressed()
     }
 
+    override fun onDestroy() {
+        if (::webView.isInitialized) webView.destroy()
+        super.onDestroy()
+    }
+
     companion object {
         private const val EXTRA_TITLE = "title"
         private const val EXTRA_PATH = "path"

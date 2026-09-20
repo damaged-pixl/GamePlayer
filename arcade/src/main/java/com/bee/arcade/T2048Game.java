@@ -13,7 +13,7 @@ import android.view.MotionEvent;
 final class T2048Game extends BaseGameView {
 
     private static final int MENU = 0, PLAY = 1, OVER = 2, WIN = 3;
-    private int screen = MENU;
+    private volatile int screen = MENU;
 
     private static final float GAP = 8f, MARGIN = 8f;
     private float cell, boardX, boardY;

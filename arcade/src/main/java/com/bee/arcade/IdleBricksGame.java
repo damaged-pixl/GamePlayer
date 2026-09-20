@@ -21,7 +21,7 @@ final class IdleBricksGame extends BaseGameView {
     private static final int MAX_BALLS = 3;
     private static final float BRICK_H = 26f;
 
-    private int screen = MENU;
+    private volatile int screen = MENU;
     private int level = 1, hi;
     private long gold;
     private int dmg, spd, balls, click;   // upgrade levels
@@ -54,10 +54,10 @@ final class IdleBricksGame extends BaseGameView {
             float r = 6f;
             if (bx[i] < r) { bx[i] = r; bvx[i] = -bvx[i]; }
             if (bx[i] > LW - r) { bx[i] = LW - r; bvx[i] = -bvx[i]; }
-            float topY = brickBottom() + 8f;
+            float topY = brickY();
             if (by[i] < topY) { by[i] = topY; bvy[i] = -bvy[i]; }
             // auto-paddle sits ABOVE the upgrade panel so the balls stay visible
-            if (by[i] > LH - 200f) { by[i] = LH - 200f; bvy[i] = Math.abs(bvy[i]); }
+            if (by[i] > LH - 200f) { by[i] = LH - 200f; bvy[i] = -Math.abs(bvy[i]); }
             hitBrick(i);
         }
     }
@@ -69,12 +69,12 @@ final class IdleBricksGame extends BaseGameView {
         drawPaddle(c);
         if (screen == MENU) {
             drawMenu(c, "IDLE BRICKS", "auto-battle, tap bricks, buy upgrades",
-                    "best level  " + Math.max(hi, level), 0xFFFFB020);
+                    "best level  " + hi, 0xFFFFB020);
         } else {
             float tp = topPad();
             chip(c, 14, tp + 46, 96, "LEVEL", level);
             chip(c, LW / 2 - 48, tp + 46, 96, "GOLD", (int) gold);
-            chip(c, LW - 110, tp + 46, 96, "BEST", Math.max(hi, level));
+            chip(c, LW - 110, tp + 46, 96, "BEST", hi);
             drawUpgrades(c);
         }
     }
@@ -87,7 +87,7 @@ final class IdleBricksGame extends BaseGameView {
                 .putInt("ib_spd", spd)
                 .putInt("ib_balls", balls)
                 .putInt("ib_click", click)
-                .putInt("ib_hi", Math.max(hi, level))
+                .putInt("ib_hi", hi)
                 .apply();
     }
     @Override boolean hidChrome() { return screen == MENU; }
@@ -104,13 +104,15 @@ final class IdleBricksGame extends BaseGameView {
         by = new float[nBalls];
         bvx = new float[nBalls];
         bvy = new float[nBalls];
-        for (int i = 0; i < nBalls; i++) {
-            bx[i] = LW / 2 + (i - (nBalls - 1) / 2f) * 40f;
-            by[i] = LH - 212f;   // just above the paddle, above the upgrade panel
-            float ang = (float) (Math.PI * (0.25 + 0.5 * rnd.nextDouble()));
-            bvx[i] = (float) Math.cos(ang) * (rnd.nextBoolean() ? 1 : -1);
-            bvy[i] = -(float) Math.sin(ang);
-        }
+        for (int i = 0; i < nBalls; i++) spawnBall(i);
+    }
+
+    private void spawnBall(int i) {
+        bx[i] = LW / 2 + (i - (nBalls - 1) / 2f) * 40f;
+        by[i] = LH - 212f;   // just above the paddle, above the upgrade panel
+        float ang = (float) (Math.PI * (0.25 + 0.5 * rnd.nextDouble()));
+        bvx[i] = (float) Math.cos(ang) * (rnd.nextBoolean() ? 1 : -1);
+        bvy[i] = -(float) Math.sin(ang);
     }
 
     private int brickValue() { return 1 + level / 3; }
@@ -119,7 +121,6 @@ final class IdleBricksGame extends BaseGameView {
     private float brickX() { return 12f; }
     private float brickY() { return topPad() + 90f; }
     private float brickW() { return (LW - 24f) / COLS; }
-    private float brickBottom() { return brickY() + brickRows * BRICK_H; }
 
     private void hitBrick(int i) {
         int col = (int) ((bx[i] - brickX()) / brickW());
@@ -185,7 +186,17 @@ final class IdleBricksGame extends BaseGameView {
         switch (i) {
             case 0: dmg++; break;
             case 1: spd++; break;
-            case 2: balls++; break;
+            case 2:
+                balls++;
+                // grow the arrays before publishing nBalls so the game thread
+                // never reads the new count with the old, shorter arrays
+                bx = java.util.Arrays.copyOf(bx, nBalls + 1);
+                by = java.util.Arrays.copyOf(by, nBalls + 1);
+                bvx = java.util.Arrays.copyOf(bvx, nBalls + 1);
+                bvy = java.util.Arrays.copyOf(bvy, nBalls + 1);
+                spawnBall(nBalls);
+                nBalls++;
+                break;
             default: click++; break;
         }
         sfx.eat(i);

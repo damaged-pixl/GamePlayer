@@ -12,7 +12,7 @@ import android.view.MotionEvent;
 final class WhacGame extends BaseGameView {
 
     private static final int MENU = 0, PLAY = 1, OVER = 2;
-    private int screen = MENU;
+    private volatile int screen = MENU;
 
     private static final int GRID = 3, HOLES = GRID * GRID;
     private static final float CELL = 150f;

@@ -13,7 +13,7 @@ import android.view.MotionEvent;
 final class SinkBreakGame extends BaseGameView {
 
     private static final int MENU = 0, PLAY = 1, OVER = 2, WON = 3;
-    private int screen = MENU;
+    private volatile int screen = MENU;
 
     private static final int COLS = 8, ROWS = 8;
     private static final float BW = 42f, BH = 18f, GAP = 3f, STRIDE = BH + GAP;

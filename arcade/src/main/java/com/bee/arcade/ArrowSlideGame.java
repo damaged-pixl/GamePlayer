@@ -23,7 +23,7 @@ final class ArrowSlideGame extends BaseGameView {
     private static final int[] DR = {-1, 0, 1, 0};
     private static final int[] DC = {0, 1, 0, -1};
 
-    private int screen = MENU;
+    private volatile int screen = MENU;
     private int level = 1, hi;
     private int lives = MAX_LIVES;
     private int[][] grid;            // -1 empty, else arrow index
@@ -56,6 +56,7 @@ final class ArrowSlideGame extends BaseGameView {
             sfx.down();
             buzz();
             if (lives <= 0) { screen = OVER; saveAll(); }
+            else if (nArrows <= 0) newLevel();   // board wiped by crashes — replay the level
         } else {
             nArrows--;
             sfx.pluck(level);
@@ -73,12 +74,12 @@ final class ArrowSlideGame extends BaseGameView {
         drawBoard(c);
         if (screen == MENU) {
             drawMenu(c, "ARROW SLIDE", "slide every arrow off the board",
-                    "best level  " + Math.max(hi, level), 0xFF3DA9E2);
+                    "best level  " + hi, 0xFF3DA9E2);
         } else {
             float tp = topPad();
             chip(c, 14, tp + 46, 96, "LEVEL", level);
             chip(c, LW / 2 - 48, tp + 46, 96, "LIVES", Math.max(0, lives));
-            chip(c, LW - 110, tp + 46, 96, "BEST", Math.max(hi, level));
+            chip(c, LW - 110, tp + 46, 96, "BEST", hi);
             if (screen == OVER) {
                 c.drawColor(0x99000000);
                 centerText(c, "OUT OF LIVES", LW / 2, LH * 0.42f, 40, 0xFFFF5D5D);
@@ -89,7 +90,7 @@ final class ArrowSlideGame extends BaseGameView {
     }
 
     @Override boolean isLive() { return screen == PLAY; }
-    @Override void saveAll() { prefs.edit().putInt("as_hi", Math.max(hi, level)).apply(); }
+    @Override void saveAll() { prefs.edit().putInt("as_hi", hi).apply(); }
     @Override boolean hidChrome() { return screen == MENU; }
     @Override int bgColor() { return 0xFF0E1A26; }
 

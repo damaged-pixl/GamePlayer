@@ -25,7 +25,7 @@ final class FloodFillGame extends BaseGameView {
     private static final int[] DR = {-1, 0, 1, 0};
     private static final int[] DC = {0, 1, 0, -1};
 
-    private int screen = MENU;
+    private volatile int screen = MENU;
     private int level = 1, hi;
     private int size, nColors;
     private int[][] target;   // -2 wall, -1 empty, 0..nColors-1 target colour
@@ -57,11 +57,11 @@ final class FloodFillGame extends BaseGameView {
         drawBoard(c);
         if (screen == MENU) {
             drawMenu(c, "FLOOD FILL", "tap tools to fill empty cells",
-                    "best level  " + Math.max(hi, level), 0xFF4CAF50);
+                    "best level  " + hi, 0xFF4CAF50);
         } else {
             float tp = topPad();
             chip(c, 14, tp + 46, 96, "LEVEL", level);
-            chip(c, LW - 110, tp + 46, 96, "BEST", Math.max(hi, level));
+            chip(c, LW - 110, tp + 46, 96, "BEST", hi);
             if (wonT > 0) centerText(c, "LEVEL CLEARED!", LW / 2, LH * 0.30f, 34, 0xFF9C6BFF);
             if (screen == OVER) {
                 c.drawColor(0x99000000);
@@ -73,7 +73,7 @@ final class FloodFillGame extends BaseGameView {
     }
 
     @Override boolean isLive() { return screen == PLAY; }
-    @Override void saveAll() { prefs.edit().putInt("ff_hi", Math.max(hi, level)).apply(); }
+    @Override void saveAll() { prefs.edit().putInt("ff_hi", hi).apply(); }
     @Override boolean hidChrome() { return screen == MENU; }
     @Override int bgColor() { return 0xFF10141F; }
 
@@ -87,7 +87,8 @@ final class FloodFillGame extends BaseGameView {
         for (int[] row : target) java.util.Arrays.fill(row, -1);
         for (int[] row : tool) java.util.Arrays.fill(row, -1);
         for (int[] row : state) java.util.Arrays.fill(row, -1);
-        for (int attempt = 0; attempt < 50 && !buildLevel(); attempt++) {
+        // each attempt succeeds with probability > 0, so retrying always terminates
+        while (!buildLevel()) {
             for (int[] row : target) java.util.Arrays.fill(row, -1);
             for (int[] row : tool) java.util.Arrays.fill(row, -1);
         }

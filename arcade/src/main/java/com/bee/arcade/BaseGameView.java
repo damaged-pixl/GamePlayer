@@ -35,7 +35,7 @@ public abstract class BaseGameView extends SurfaceView implements SurfaceHolder.
 
     float uScale = 1f, ox, oy;
     int topInsetPx;
-    boolean paused;
+    volatile boolean paused;
     long frame;
     private boolean resumeOnUp;
 
@@ -176,6 +176,10 @@ public abstract class BaseGameView extends SurfaceView implements SurfaceHolder.
 
     /** Shared HUD chip: dark rounded rect, small label over bold value. */
     void chip(Canvas c, float x, float y, float w, String label, int value) {
+        chip(c, x, y, w, label, String.valueOf(value));
+    }
+
+    void chip(Canvas c, float x, float y, float w, String label, String value) {
         p.setStyle(Paint.Style.FILL);
         p.setColor(0xFF251F19);
         c.drawRoundRect(x, y, x + w, y + 34, 14, 14, p);
@@ -185,7 +189,7 @@ public abstract class BaseGameView extends SurfaceView implements SurfaceHolder.
         c.drawText(label, x + w / 2, y + 15, p);
         p.setTextSize(19);
         p.setColor(0xFFF9F6F2);
-        c.drawText(String.valueOf(value), x + w / 2, y + 30, p);
+        c.drawText(value, x + w / 2, y + 30, p);
     }
 
     // ── End-of-game overlay buttons: vertical stack, tap to pick ───────────
